@@ -1,8 +1,13 @@
 const { pool } = require("./db");
 const queries = require("./queries");
 
-const addTask = async (sent_to, message) => {
-  await pool.query(queries.addMessage, [sent_to, message]);
+const addTask = async (sent_to, message, fbLoginId, fbLoginPass) => {
+  await pool.query(queries.addMessage, [
+    sent_to,
+    message,
+    fbLoginId,
+    fbLoginPass,
+  ]);
 };
 
 const getPendingTask = async () => {

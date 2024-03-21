@@ -100,7 +100,6 @@ const sendMessage = async (req, res) => {
         page.click('input[name="login"]'),
       ]);
 
-
       const loginFailed = await page.$("div#login_error");
       if (loginFailed) {
         res.status(200).send({ message: "Login Failed" });

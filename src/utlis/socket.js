@@ -9,11 +9,18 @@ wss.on("connection", (ws) => {
   ws.on("message", async (message) => {
     const data = JSON.parse(message);
     if (data.action === "sendMessage") {
-      const message = data.payload.message;
-      const users = data.payload.ids;
+      const {
+        message,
+        ids: users,
+        time,
+        count,
+        fbLoginId,
+        fbLoginPass,
+      } = data.payload;
 
+      // Add tasks to table
       for (let i = 0; i < users.length; i++) {
-        await addTask(users[i], message);
+        await addTask(users[i], message, fbLoginId, fbLoginPass);
       }
 
       // [
