@@ -3,6 +3,7 @@ const {
   sendMessage,
   getAllMessages,
   getAllMessagesByUsername,
+  updateMessageById,
 } = require("../controllers/messengerController");
 const {
   registerUser,
@@ -57,5 +58,8 @@ router.get("/messages", authenticate, getAllMessages);
 
 // GET ALL AGENT's MESSAGE
 router.get("/messages/:agent", authenticate, getAllMessagesByUsername);
+
+// Update Message
+router.put("/messages/:messageId", updateMessageById);
 
 module.exports = router;

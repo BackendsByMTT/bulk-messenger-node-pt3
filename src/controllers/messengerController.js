@@ -3,6 +3,7 @@ const { pool } = require("../utlis/db");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const queries = require("../utlis/queries");
+const { updateTaskStatus } = require("../utlis/actions");
 
 const checkTableExists = async (database) => {
   const query = `SELECT to_regclass('public.${database}')`;
@@ -204,8 +205,22 @@ const getAllMessagesByUsername = async (req, res) => {
   }
 };
 
+const updateMessageById = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { id, status, message, user } = req.body;
+    const updatedTask = await updateTaskStatus(id, status, user);
+    console.log("UP : ", updatedTask);
+
+    return res.json({ success: true, message: "Task Updated" });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   sendMessage,
   getAllMessages,
   getAllMessagesByUsername,
+  updateMessageById,
 };

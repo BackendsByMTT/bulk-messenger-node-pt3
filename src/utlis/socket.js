@@ -1,45 +1,69 @@
 const WebSocket = require("ws");
 const { pool } = require("./db");
-const { addTask, getPendingTask, updateTaskStatus } = require("./actions");
+const {
+  addTask,
+  getPendingTask,
+  updateTaskStatus,
+  generateUniqueId,
+} = require("./actions");
 const wss = new WebSocket.Server({ port: 8080 });
+let taskSchedulerIntervalId = null;
 
 wss.on("connection", (ws) => {
-  ws.send(JSON.stringify({ message: "connected" }));
+  ws.send(JSON.stringify({ action: "connected" }));
 
   ws.on("message", async (message) => {
-    const data = JSON.parse(message);
-    if (data.action === "addTask") {
-      const {
-        message,
-        ids: users,
-        time,
-        count,
-        fbLoginId,
-        fbLoginPass,
-      } = data.payload;
-
-      // Add tasks to table
-      for (let i = 0; i < users.length; i++) {
-        await addTask(users[i], message, fbLoginId, fbLoginPass);
+    try {
+      const data = JSON.parse(message);
+      if (data.action === "addTask") {
+        await processAddTasks(ws, data.payload);
       }
-
-      const tasks = await getPendingTask();
-      for (let i = 0; i < tasks.length; i++) {
-        ws.send(
-          JSON.stringify({ message: "sendMessageToUser", task: tasks[i] })
-        );
-      }
-    }
-
-    if (data.action === "updateTaskStatus") {
-      const task = data.task.res;
-      updateTaskStatus(task);
-    }
+    } catch (error) {}
   });
 
   ws.on("close", () => {
     console.log(`deleted`);
   });
 });
+
+const processAddTasks = async (ws, payload) => {
+  const {
+    message,
+    ids: users,
+    time: interval,
+    count,
+    fbLoginId,
+    fbLoginPass,
+  } = payload;
+
+  await Promise.all(
+    users.map((user) => addTask(user, message, fbLoginId, fbLoginPass))
+  );
+
+  scheduleTasks(ws, interval, count);
+};
+
+const scheduleTasks = (ws, interval, count) => {
+  if (!taskSchedulerIntervalId) {
+    taskSchedulerIntervalId = setInterval(async () => {
+      const tasks = await getPendingTask(count);
+      if (tasks.length > 0) {
+        tasks.forEach((task) => {
+          const requestId = generateUniqueId();
+          const payload = {
+            action: "sendMessageToUser",
+            task: task,
+            requestId: requestId,
+          };
+          ws.send(JSON.stringify(payload));
+        });
+      } else {
+        console.log("No pending tasks");
+        clearInterval(taskSchedulerIntervalId);
+        taskSchedulerIntervalId = null;
+      }
+    }, interval * 60000);
+  }
+};
 
 module.exports = wss;
