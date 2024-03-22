@@ -28,7 +28,6 @@ app.use("/", healthCheckRoute);
 app.use("/extension", extensionRoute);
 
 wss.on("connection", (ws) => {
-  console.log(`WebSocket : ${wss.address.port}`);
   ws.send(JSON.stringify({ action: "connected" }));
 
   ws.on("message", async (message) => {
@@ -80,6 +79,11 @@ const scheduleTasks = (ws, interval, count) => {
   }
 };
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server running on port ${server.address().port}`);
+});
+
+// Log WebSocket server's port after it starts listening
+wss.on("listening", () => {
+  console.log(`WebSocket server running on port ${server.address().port}`);
 });

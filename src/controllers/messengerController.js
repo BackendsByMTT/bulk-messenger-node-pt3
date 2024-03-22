@@ -207,10 +207,8 @@ const getAllMessagesByUsername = async (req, res) => {
 
 const updateMessageById = async (req, res) => {
   try {
-    const { messageId } = req.params;
-    const { id, status, message, user } = req.body;
-    const updatedTask = await updateTaskStatus(id, status, user);
-    console.log("UP : ", updatedTask);
+    const { id, status, user } = req.body;
+    await updateTaskStatus(id, status, user);
 
     return res.json({ success: true, message: "Task Updated" });
   } catch (error) {
