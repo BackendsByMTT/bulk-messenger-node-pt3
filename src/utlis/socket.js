@@ -27,18 +27,11 @@ wss.on("connection", (ws) => {
 });
 
 const processAddTasks = async (ws, payload) => {
-  const {
-    message,
-    ids: users,
-    time: interval,
-    count,
-    fbLoginId,
-    fbLoginPass,
-  } = payload;
+  const { message, ids: users, time: interval, count } = payload;
 
-  await Promise.all(
-    users.map((user) => addTask(user, message, fbLoginId, fbLoginPass))
-  );
+  console.log("payload : ", payload);
+
+  await Promise.all(users.map((user) => addTask(user, message)));
 
   scheduleTasks(ws, interval, count);
 };

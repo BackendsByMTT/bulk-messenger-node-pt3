@@ -1,8 +1,10 @@
 const addMessage =
-  "INSERT INTO messages (sent_to, message, sent_from, password) VALUES($1, $2, $3, $4) RETURNING sent_to, message, status";
+  "INSERT INTO messages (sent_to, message) VALUES($1, $2) RETURNING sent_to, message, status";
 
 const createMessageTable =
   "CREATE TABLE messages ( id SERIAL PRIMARY KEY, sent_to VARCHAR(255) NOT NULL, message TEXT NOT NULL, status VARCHAR(20) NOT NULL DEFAULT 'pending', created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);";
+
+// PREVIOUS
 
 const getAllMessages = "SELECT * FROM messages";
 

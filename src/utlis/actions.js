@@ -1,13 +1,19 @@
 const { pool } = require("./db");
 const queries = require("./queries");
 
-const addTask = async (sent_to, message, fbLoginId, fbLoginPass) => {
-  await pool.query(queries.addMessage, [
-    sent_to,
-    message,
-    fbLoginId,
-    fbLoginPass,
-  ]);
+const checkTableExists = async (database) => {
+  const query = `SELECT to_regclass('public.${database}')`;
+  const { rows } = await pool.query(query);
+  return rows[0].to_regclass !== null;
+};
+
+const addTask = async (sent_to, message) => {
+  const isMessageTable = await checkTableExists("messages");
+  if (!isMessageTable) {
+    await pool.query(queries.createMessageTable);
+    console.log("DB CREATED");
+  }
+  await pool.query(queries.addMessage, [sent_to, message]);
 };
 
 const getPendingTask = async (count) => {
