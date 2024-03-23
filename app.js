@@ -28,7 +28,7 @@ app.use("/", healthCheckRoute);
 app.use("/extension", extensionRoute);
 
 wss.on("connection", (ws) => {
-  ws.send(JSON.stringify({ action: "connected" }));
+  scheduleTasks(ws, 2, 2);
 
   ws.on("message", async (message) => {
     try {
@@ -56,10 +56,12 @@ const processAddTasks = async (ws, payload) => {
   scheduleTasks(ws, interval, count);
 };
 
-const scheduleTasks = (ws, interval, count) => {
+const scheduleTasks = (ws, interval = 2, count = 2) => {
   if (!taskSchedulerIntervalId) {
+    console.log("Tasks Scheduled sucessfully");
     taskSchedulerIntervalId = setInterval(async () => {
       const tasks = await getPendingTask(count);
+      console.log("TASK : ", tasks);
       if (tasks.length > 0) {
         tasks.forEach((task) => {
           const requestId = generateUniqueId();
@@ -76,6 +78,8 @@ const scheduleTasks = (ws, interval, count) => {
         taskSchedulerIntervalId = null;
       }
     }, interval * 60000);
+  } else {
+    console.log("Already Scheduled");
   }
 };
 
