@@ -22,8 +22,7 @@ const getPendingTask = async (count) => {
 
 const updateTaskStatus = async (id, status, user) => {
   const updatedTask = await pool.query(
-    "UPDATE messages SET status = $1, created_at = NOW() WHERE id = $2 AND sent_to = $3 RETURNING id, sent_to, created_at",
-    [status, id, user]
+    "UPDATE messages SET status = $1, created_at = NOW() WHERE id = $2 AND sent_to = $3 RETURNING id, sent_to, created_at", [status, id, user]
   );
 
   console.log("TASK TO BE UPDAE  : ", updatedTask.rows);
