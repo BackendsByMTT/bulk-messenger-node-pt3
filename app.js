@@ -28,7 +28,6 @@ app.use("/", healthCheckRoute);
 app.use("/extension", extensionRoute);
 
 wss.on("connection", (ws) => {
-  scheduleTasks(ws, 2, 2);
 
   ws.on("message", async (message) => {
     try {
