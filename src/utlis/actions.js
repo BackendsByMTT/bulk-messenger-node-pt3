@@ -8,11 +8,6 @@ const checkTableExists = async (database) => {
 };
 
 const addTask = async (sent_to, message) => {
-  const isMessageTable = await checkTableExists("messages");
-  if (!isMessageTable) {
-    await pool.query(queries.createMessageTable);
-    console.log("DB CREATED");
-  }
   await pool.query(queries.addMessage, [sent_to, message]);
 };
 
@@ -42,4 +37,5 @@ module.exports = {
   getPendingTask,
   updateTaskStatus,
   generateUniqueId,
+  checkTableExists,
 };

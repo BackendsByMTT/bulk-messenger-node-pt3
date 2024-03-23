@@ -12,7 +12,10 @@ const {
   getPendingTask,
   updateTaskStatus,
   generateUniqueId,
+  checkTableExists,
 } = require("./src/utlis/actions");
+const { pool } = require("./src/utlis/db");
+const queries = require("./src/utlis/queries");
 
 const app = express();
 const server = http.createServer(app); // Create an HTTP server
@@ -27,7 +30,12 @@ app.use("/api/", messengerRoute);
 app.use("/", healthCheckRoute);
 app.use("/extension", extensionRoute);
 
-wss.on("connection", (ws) => {
+wss.on("connection", async (ws) => {
+  const isMessageTable = await checkTableExists("messages");
+
+  if (!isMessageTable) {
+    await pool.query(queries.createMessageTable);
+  }
 
   ws.on("message", async (message) => {
     try {

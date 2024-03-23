@@ -12,14 +12,7 @@ const pool = new Pool({
   host: process.env.DB_HOST,
 });
 
-// Dev-DB
-// const pool = new Pool({
-//   user: process.env.DB_DEV_USER,
-//   password: process.env.DB_DEV_PASSWORD,
-//   database: process.env.DB_DEV_DATABASE,
-//   port: 5432,
-//   host: process.env.DB_DEV_HOST,
-// });
+
 
 pool.on("connect", () => {
   console.log("Database connected");
