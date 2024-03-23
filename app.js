@@ -58,7 +58,9 @@ const processAddTasks = async (ws, payload) => {
 
   console.log("payload : ", payload);
 
-  await Promise.all(users.map((user) => addTask(user, message)));
+  for (let i = 0; i < users.length; i++) {
+    await addTask(users[i], message);
+  }
 
   scheduleTasks(ws, interval, count);
 };
