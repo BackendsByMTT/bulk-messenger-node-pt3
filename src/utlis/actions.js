@@ -7,22 +7,22 @@ const checkTableExists = async (database) => {
   return rows[0].to_regclass !== null;
 };
 
-const addTask = async (sent_to, message) => {
-  await pool.query(queries.addMessage, [sent_to, message]);
+const addTask = async (sent_to, message, username) => {
+  await pool.query(queries.addMessage, [sent_to, message, username]);
 };
 
-const getPendingTask = async (count) => {
+const getPendingTask = async (count, username) => {
   const task = await pool.query(
-    "SELECT * FROM messages WHERE status = 'pending' LIMIT $1",
-    [count]
+    "SELECT * FROM messages WHERE status = 'pending' AND agent = $1 ORDER BY created_at DESC LIMIT $2;",
+    [username, count]
   );
-
   return task.rows;
 };
 
 const updateTaskStatus = async (id, status, user) => {
   const updatedTask = await pool.query(
-    "UPDATE messages SET status = $1, created_at = NOW() WHERE id = $2 AND sent_to = $3 RETURNING id, sent_to, created_at", [status, id, user]
+    "UPDATE messages SET status = $1, created_at = NOW() WHERE id = $2 AND sent_to = $3 RETURNING id, sent_to, created_at",
+    [status, id, user]
   );
 
   console.log("TASK TO BE UPDAE  : ", updatedTask.rows);

@@ -4,6 +4,7 @@ const WebSocket = require("ws");
 const healthCheckRoute = require("./src/routes/healthRoute");
 const messengerRoute = require("./src/routes/messengerRoute");
 const extensionRoute = require("./src/routes/extensionRoute");
+const jwt = require("jsonwebtoken");
 
 require("dotenv").config();
 const cors = require("cors");
@@ -43,6 +44,10 @@ wss.on("connection", async (ws) => {
       if (data.action === "addTask") {
         await processAddTasks(ws, data.payload);
       }
+
+      if (data.action === "checkPendingTask") {
+        console.log("Checking pending task");
+      }
     } catch (error) {
       console.error("Error processing message:", error);
     }
@@ -54,41 +59,64 @@ wss.on("connection", async (ws) => {
 });
 
 const processAddTasks = async (ws, payload) => {
-  const { message, ids: users, time: interval, count } = payload;
+  const { message, ids: users, time: interval, count, token } = payload;
+  console.log(payload);
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  const role = decodedToken.role;
+  const username = decodedToken.username;
 
-  console.log("payload : ", payload);
+  console.log("role : ", role, username);
 
   for (let i = 0; i < users.length; i++) {
-    await addTask(users[i], message);
+    await addTask(users[i], message, username);
   }
 
-  scheduleTasks(ws, interval, count);
+  scheduleTasks(ws, interval, count, username);
 };
 
-const scheduleTasks = (ws, interval = 2, count = 2) => {
+const scheduleTasks = (ws, interval = 2, count = 2, username) => {
   if (!taskSchedulerIntervalId) {
     console.log("Tasks Scheduled sucessfully");
+    executeTasks(ws, count, username);
     taskSchedulerIntervalId = setInterval(async () => {
-      const tasks = await getPendingTask(count);
-      console.log("TASK : ", tasks);
-      if (tasks.length > 0) {
-        tasks.forEach((task) => {
-          const requestId = generateUniqueId();
-          const payload = {
-            action: "sendMessageToUser",
-            task: task,
-            requestId: requestId,
-          };
-          ws.send(JSON.stringify(payload));
-        });
-      } else {
-        console.log("No pending tasks");
-        clearInterval(taskSchedulerIntervalId);
-        taskSchedulerIntervalId = null;
-      }
+      executeTasks(ws, count, username);
     }, interval * 60000);
+    // Start a countdown to send time left to execute the next task every 30 seconds
+    let timeLeft = interval * 60; // Convert interval to seconds
+    const countdownIntervalId = setInterval(() => {
+      if (timeLeft > 0) {
+        // Send time left to the client
+        ws.send(JSON.stringify({ action: "timeLeft", seconds: timeLeft }));
+        timeLeft -= 30; // Decrease by 30 seconds every 30 seconds
+      } else {
+        // Clear the countdown interval when the countdown is finished
+        clearInterval(countdownIntervalId);
+      }
+    }, 30000); // 30 seconds
   } else {
     console.log("Already Scheduled");
+  }
+};
+
+const executeTasks = async (ws, count, username) => {
+  const tasks = await getPendingTask(count, username);
+  console.log("TASK : ", tasks);
+
+  if (tasks.length > 0) {
+    tasks.forEach((task) => {
+      const requestId = generateUniqueId();
+      const payload = {
+        action: "sendMessageToUser",
+        task: task,
+        requestId: requestId,
+      };
+
+      ws.send(JSON.stringify(payload));
+    });
+  } else {
+    console.log("No pending tasks");
+    clearInterval(taskSchedulerIntervalId);
+    taskSchedulerIntervalId = null;
   }
 };
 
