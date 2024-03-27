@@ -23,6 +23,7 @@ const server = http.createServer(app); // Create an HTTP server
 const wss = new WebSocket.Server({ server }); // Create a WebSocket server
 const PORT = process.env.PORT || 3001;
 let taskSchedulerIntervalId = null;
+const clients = new Map();
 
 app.use(cors());
 app.use(express.json());
@@ -32,17 +33,38 @@ app.use("/", healthCheckRoute);
 app.use("/extension", extensionRoute);
 
 wss.on("connection", async (ws) => {
+  let clientId = null;
+  // console.log(`Connected: ${clientId}`);
+  // clients.set(clientId, ws);
+
+  ws.send(JSON.stringify({ message: "Hei" }));
+
   const isMessageTable = await checkTableExists("messages");
 
   if (!isMessageTable) {
     await pool.query(queries.createMessageTable);
   }
 
-  ws.on("message", async (message) => {
+  ws.onmessage = async (message) => {
     try {
-      const data = JSON.parse(message);
+      const data = JSON.parse(message.data);
+
+      if (data.action === "clientID") {
+        clientId = data.payload;
+        console.log(`Client ID received: ${clientId}`);
+
+        if (clients.has(clientId)) {
+          clients.set(clientId, ws);
+          console.log(
+            `Client ID ${clientId} already exists. Updated WebSocket connection.`
+          );
+        } else {
+          clients.set(clientId, ws);
+          console.log(`Client ID ${clientId} added to the clients map.`);
+        }
+      }
       if (data.action === "addTask") {
-        await processAddTasks(ws, data.payload);
+        await processAddTasks(clientId, data.payload);
       }
 
       if (data.action === "checkPendingTask") {
@@ -51,14 +73,15 @@ wss.on("connection", async (ws) => {
     } catch (error) {
       console.error("Error processing message:", error);
     }
-  });
+  };
 
   ws.on("close", () => {
-    console.log(`WebSocket connection closed`);
+    console.log(`Disconnedted :  ${clientId}`);
+    // clients.delete(clientId);
   });
 });
 
-const processAddTasks = async (ws, payload) => {
+const processAddTasks = async (clientId, payload) => {
   const { message, ids: users, time: interval, count, token } = payload;
   console.log(payload);
   const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
@@ -66,6 +89,12 @@ const processAddTasks = async (ws, payload) => {
   const username = decodedToken.username;
 
   console.log("role : ", role, username);
+
+  const ws = clients.get(clientId);
+  if (!ws) {
+    console.error(`WebSocket connection not found for client ${clientId}`);
+    return;
+  }
 
   for (let i = 0; i < users.length; i++) {
     await addTask(users[i], message, username);

@@ -29,8 +29,18 @@ const updateTaskStatus = async (id, status, user) => {
 };
 
 function generateUniqueId() {
-  return Date.now(); // Simple example, use a more robust method in production
+  // Generate a random string
+  const randomStr = Math.random().toString(36).substring(2, 12);
+
+  // Get the current timestamp
+  const timestamp = new Date().getTime();
+
+  // Combine the random string and timestamp to create a unique ID
+  const uniqueId = randomStr + "-" + timestamp;
+
+  return uniqueId;
 }
+
 module.exports = {
   addTask,
   getPendingTask,
