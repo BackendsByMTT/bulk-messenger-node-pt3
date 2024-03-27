@@ -78,6 +78,7 @@ wss.on("connection", async (ws) => {
   ws.on("close", () => {
     console.log(`Disconnedted :  ${clientId}`);
     // clients.delete(clientId);
+    console.log("Cancelled Scheduled Tasks");
     clearTaskSchedulerInterval(clientId);
   });
 });
