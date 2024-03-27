@@ -23,6 +23,7 @@ const server = http.createServer(app); // Create an HTTP server
 const wss = new WebSocket.Server({ server }); // Create a WebSocket server
 const PORT = process.env.PORT || 3001;
 let taskSchedulerIntervalId = null;
+const taskSchedulerIntervalIds = new Map();
 const clients = new Map();
 
 app.use(cors());
@@ -100,34 +101,35 @@ const processAddTasks = async (clientId, payload) => {
     await addTask(users[i], message, username);
   }
 
-  scheduleTasks(ws, interval, count, username);
+  scheduleTasks(clientId, ws, interval, count, username);
 };
 
-const scheduleTasks = (ws, interval = 2, count = 2, username) => {
-  if (!taskSchedulerIntervalId) {
-    console.log("Tasks Scheduled sucessfully");
-    executeTasks(ws, count, username);
-    taskSchedulerIntervalId = setInterval(async () => {
-      executeTasks(ws, count, username);
-    }, interval * 60000);
-    // Start a countdown to send time left to execute the next task every 30 seconds
-    let timeLeft = interval * 60; // Convert interval to seconds
-    const countdownIntervalId = setInterval(() => {
-      if (timeLeft > 0) {
-        // Send time left to the client
-        ws.send(JSON.stringify({ action: "timeLeft", seconds: timeLeft }));
-        timeLeft -= 30; // Decrease by 30 seconds every 30 seconds
-      } else {
-        // Clear the countdown interval when the countdown is finished
-        clearInterval(countdownIntervalId);
-      }
-    }, 30000); // 30 seconds
-  } else {
-    console.log("Already Scheduled");
+const scheduleTasks = (clientId, ws, interval = 2, count = 2, username) => {
+  if (taskSchedulerIntervalIds.has(clientId)) {
+    console.log("Task already scheduled for this client");
+    return;
+  }
+
+  console.log("Tasks Scheduled sucessfully");
+  executeTasks(clientId, ws, count, username);
+
+  const intervalId = setInterval(async () => {
+    executeTasks(clientId, ws, count, username);
+  }, interval * 60000);
+
+  taskSchedulerIntervalIds.set(clientId, intervalId);
+};
+
+// When a task is no longer needed, clear its interval
+const clearTaskSchedulerInterval = (clientId) => {
+  const intervalId = taskSchedulerIntervalIds.get(clientId);
+  if (intervalId) {
+    clearInterval(intervalId);
+    taskSchedulerIntervalIds.delete(clientId);
   }
 };
 
-const executeTasks = async (ws, count, username) => {
+const executeTasks = async (clientId, ws, count, username) => {
   const tasks = await getPendingTask(count, username);
   console.log("TASK : ", tasks);
 
@@ -143,9 +145,8 @@ const executeTasks = async (ws, count, username) => {
       ws.send(JSON.stringify(payload));
     });
   } else {
-    console.log("No pending tasks");
-    clearInterval(taskSchedulerIntervalId);
-    taskSchedulerIntervalId = null;
+    clearTaskSchedulerInterval(clientId);
+    console.log("No pending tasks : ", username);
   }
 };
 
