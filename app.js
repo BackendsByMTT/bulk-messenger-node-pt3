@@ -22,7 +22,6 @@ const app = express();
 const server = http.createServer(app); // Create an HTTP server
 const wss = new WebSocket.Server({ server }); // Create a WebSocket server
 const PORT = process.env.PORT || 3001;
-let taskSchedulerIntervalId = null;
 const taskSchedulerIntervalIds = new Map();
 const clients = new Map();
 
@@ -79,6 +78,7 @@ wss.on("connection", async (ws) => {
   ws.on("close", () => {
     console.log(`Disconnedted :  ${clientId}`);
     // clients.delete(clientId);
+    clearTaskSchedulerInterval(clientId);
   });
 });
 
