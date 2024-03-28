@@ -14,6 +14,7 @@ const {
   updateTaskStatus,
   generateUniqueId,
   checkTableExists,
+  getAgentsPendingTask,
 } = require("./src/utlis/actions");
 const { pool } = require("./src/utlis/db");
 const queries = require("./src/utlis/queries");
@@ -34,10 +35,9 @@ app.use("/extension", extensionRoute);
 
 wss.on("connection", async (ws) => {
   let clientId = null;
+  let token = null;
   // console.log(`Connected: ${clientId}`);
   // clients.set(clientId, ws);
-
-  ws.send(JSON.stringify({ message: "Hei" }));
 
   const isMessageTable = await checkTableExists("messages");
 
@@ -51,17 +51,22 @@ wss.on("connection", async (ws) => {
 
       if (data.action === "clientID") {
         clientId = data.payload;
-        console.log(`Client ID received: ${clientId}`);
+        token = data.token;
 
-        if (clients.has(clientId)) {
-          clients.set(clientId, ws);
-          console.log(
-            `Client ID ${clientId} already exists. Updated WebSocket connection.`
-          );
-        } else {
-          clients.set(clientId, ws);
-          console.log(`Client ID ${clientId} added to the clients map.`);
-        }
+        console.log(`Client ID received: ${clientId}`);
+        console.log(`Client Token: ${token}`);
+
+        // Update the WebSocket connection for this clientId in the clients map
+        clients.set(clientId, ws);
+        console.log(`WebSocket connection updated for client ID: ${clientId}`);
+
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        const agent = decodedToken.username;
+
+        const pendingTasks = await getAgentsPendingTask(agent);
+        ws.send(
+          JSON.stringify({ action: "pendingTasks", payload: pendingTasks })
+        );
       }
       if (data.action === "addTask") {
         await processAddTasks(clientId, data.payload);
@@ -78,8 +83,8 @@ wss.on("connection", async (ws) => {
   ws.on("close", () => {
     console.log(`Disconnedted :  ${clientId}`);
     // clients.delete(clientId);
-    console.log("Cancelled Scheduled Tasks");
-    clearTaskSchedulerInterval(clientId);
+    // console.log("Cancelled Scheduled Tasks");
+    // clearTaskSchedulerInterval(clientId);
   });
 });
 
@@ -112,10 +117,10 @@ const scheduleTasks = (clientId, ws, interval = 2, count = 2, username) => {
   }
 
   console.log("Tasks Scheduled sucessfully");
-  executeTasks(clientId, ws, count, username);
+  executeTasks(clientId, count, username);
 
   const intervalId = setInterval(async () => {
-    executeTasks(clientId, ws, count, username);
+    executeTasks(clientId, count, username);
   }, interval * 60000);
 
   taskSchedulerIntervalIds.set(clientId, intervalId);
@@ -130,7 +135,7 @@ const clearTaskSchedulerInterval = (clientId) => {
   }
 };
 
-const executeTasks = async (clientId, ws, count, username) => {
+const executeTasks = async (clientId, count, username) => {
   const tasks = await getPendingTask(count, username);
   console.log("TASK : ", tasks);
 
@@ -143,6 +148,7 @@ const executeTasks = async (clientId, ws, count, username) => {
         requestId: requestId,
       };
 
+      const ws = clients.get(clientId);
       ws.send(JSON.stringify(payload));
     });
   } else {

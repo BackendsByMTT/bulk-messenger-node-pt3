@@ -19,6 +19,15 @@ const getPendingTask = async (count, username) => {
   return task.rows;
 };
 
+const getAgentsPendingTask = async (username) => {
+  const tasks = await pool.query(
+    "SELECT * FROM messages WHERE status = 'pending' AND agent = $1 ORDER BY created_at DESC",
+    [username]
+  );
+
+  return tasks.rows;
+};
+
 const updateTaskStatus = async (id, status, user) => {
   const updatedTask = await pool.query(
     "UPDATE messages SET status = $1, created_at = NOW() WHERE id = $2 AND sent_to = $3 RETURNING id, sent_to, created_at",
@@ -47,4 +56,5 @@ module.exports = {
   updateTaskStatus,
   generateUniqueId,
   checkTableExists,
+  getAgentsPendingTask,
 };
