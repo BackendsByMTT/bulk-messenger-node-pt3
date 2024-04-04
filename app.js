@@ -25,14 +25,11 @@ const wss = new WebSocket.Server({ server }); // Create a WebSocket server
 const PORT = process.env.PORT || 3001;
 const taskSchedulerIntervalIds = new Map();
 const clients = new Map();
-
 app.use(cors());
 app.use(express.json());
-
 app.use("/api/", messengerRoute);
 app.use("/", healthCheckRoute);
 app.use("/extension", extensionRoute);
-
 wss.on("connection", async (ws) => {
   let clientId = null;
   let token = null;
@@ -48,6 +45,10 @@ wss.on("connection", async (ws) => {
   ws.onmessage = async (message) => {
     try {
       const data = JSON.parse(message.data);
+
+      if (data.action === "keepalive") {
+        console.log(`WEBSOCKET IS ALIVE FOR :${clientId}`);
+      }
 
       if (data.action === "clientID") {
         clientId = data.payload;
