@@ -32,6 +32,12 @@ const deleteAgent =
 const checkAgentExist =
   "SELECT * FROM users WHERE username = $1 AND role='agent'";
 
+const updateAgentUsername =
+  "UPDATE users SET username = $1 WHERE username = $2 AND role='agent'";
+
+const updateMessageTableUsername =
+  "UPDATE messages SET agent = $1 WHERE agent = $2 ";
+
 const updateAgentName =
   "UPDATE users SET name = $1 WHERE username = $2 AND role='agent'";
 
@@ -68,6 +74,8 @@ module.exports = {
   updateAgentName,
   updateAgentPassword,
   updateAgentStatus,
+  updateAgentUsername,
+  updateMessageTableUsername,
   getAllUsers,
   getAllAgents,
   getAgentByUsername,

@@ -12,11 +12,14 @@ const {
   getUserByUsername,
   getAllAgents,
   getAgentByUsername,
-  blockAgentByUsername,
   deleteAgent,
   updateAgent,
 } = require("../controllers/authController");
-const { authenticate, isAdmin } = require("../middleware.js/middleware");
+const {
+  authenticate,
+  isAdmin,
+  checkUserStatus,
+} = require("../middleware.js/middleware");
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -24,7 +27,7 @@ router.get("/", (req, res) => {
 });
 
 // LOGIN
-router.post("/auth/users/login", loginUser);
+router.post("/auth/users/login", checkUserStatus, loginUser);
 
 // REGISTER
 router.post("/auth/users/register", authenticate, registerUser);
@@ -46,9 +49,6 @@ router.delete("/agents/:username", isAdmin, deleteAgent);
 
 // UPDATE A USER BY USERNAME
 router.put("/agents/:username", isAdmin, updateAgent);
-
-// BLOCK AGENT BY USERNAME
-router.get("/disable/users/:username", isAdmin, blockAgentByUsername);
 
 // SEND A MESSAGE
 router.post("/send", sendMessage);

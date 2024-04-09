@@ -188,7 +188,7 @@ const deleteAgent = async (req, res) => {
 const updateAgent = async (req, res) => {
   try {
     const { username: agentToBeUpdated } = req.params;
-    const { name, password, status } = req.body;
+    const { name, username, password, status } = req.body;
 
     // Check if the agent to be updated exists
     const agent = await pool.query(queries.checkAgentExist, [agentToBeUpdated]);
@@ -219,6 +219,18 @@ const updateAgent = async (req, res) => {
       await pool.query(queries.updateAgentStatus, [status, agentToBeUpdated]);
     }
 
+    if (username) {
+      await pool.query(queries.updateAgentUsername, [
+        username,
+        agentToBeUpdated,
+      ]);
+
+      await pool.query(queries.updateMessageTableUsername, [
+        username,
+        agentToBeUpdated,
+      ]);
+    }
+
     return res
       .status(200)
       .json({ success: true, message: "Agent updated successfully" });
@@ -242,21 +254,6 @@ const getAgentByUsername = async (req, res) => {
       .status(400)
       .json({ success: false, message: "Failed to get agent" });
   }
-};
-
-// BLOCK AGENT
-const blockAgentByUsername = async (req, res) => {
-  try {
-    const { username: agentTobeBlocked } = req.params;
-
-    // Check if the agent to be updated exists
-    const agent = await pool.query(queries.checkAgentExist, [agentToBeUpdated]);
-    if (agent.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-  } catch (error) {}
 };
 
 // GET ALL USERS
@@ -294,5 +291,4 @@ module.exports = {
   getUserByUsername,
   getAllAgents,
   getAgentByUsername,
-  blockAgentByUsername,
 };

@@ -39,6 +39,8 @@ const isAdmin = async (req, res, next) => {
       return res
         .status(401)
         .json({ success: false, message: "You are not an Admin" });
+    } else {
+      console.log("YOU ARE ADMIN");
     }
 
     next();
@@ -50,4 +52,33 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-module.exports = { authenticate, isAdmin };
+const checkUserStatus = async (req, res, next) => {
+  const { username } = req.body;
+
+  try {
+    const result = await pool.query(
+      "SELECT status FROM users WHERE username = $1",
+      [username]
+    );
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const userStatus = result.rows[0].status;
+    if (userStatus === "inactive") {
+      return res.status(401).json({
+        success: false,
+        message: "User is inactive and cannot log in",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking user status:", error.message);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+module.exports = { authenticate, isAdmin, checkUserStatus };
