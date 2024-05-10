@@ -3,7 +3,7 @@ const { pool } = require("../utlis/db");
 const bcrypt = require("bcrypt");
 
 const checkDBExists = async (database) => {
-  console.log("CHECKING DB EXISTS");
+  // console.log("CHECKING DB EXISTS");
   const query = `SELECT datname FROM pg_database WHERE datname = $1`;
   const { rows } = await pool.query(query, [database]);
   return rows.length > 0;
@@ -15,7 +15,7 @@ const createDB = async (database) => {
 };
 
 const checkTableExists = async (database) => {
-  console.log("CHECKING TABLE EXISTS");
+  // console.log("CHECKING TABLE EXISTS");
 
   const query = `SELECT to_regclass('public.${database}')`;
   const { rows } = await pool.query(query);
@@ -23,7 +23,7 @@ const checkTableExists = async (database) => {
 };
 
 const createUsersTable = async () => {
-  console.log("CREATE USER TABLE ");
+  // console.log("CREATE USER TABLE ");
 
   const query = `CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -49,7 +49,7 @@ const ensureDBAndTable = async () => {
 const registerUser = async (req, res) => {
   const { username, name, password, role } = req.body;
 
-  console.log(req.body);
+  // console.log(req.body);
   // await ensureDBAndTable();
 
   // try {
@@ -65,7 +65,7 @@ const registerUser = async (req, res) => {
 
   //   return res.status(201).json({ message: "User created successfully" });
   // } catch (error) {
-  //   console.error("Error creating user:", error);
+  //    // console.error("Error creating user:", error);
   //   return res.status(500).json({ error: "Internal server error." });
   // }
 };

@@ -69,7 +69,7 @@ const sendMessage = async (req, res) => {
     }
 
     if (!tableExists) {
-      console.log("Message Table Created");
+       // console.log("Message Table Created");
       await pool.query(queries.createMessageTable);
     }
 
@@ -131,14 +131,14 @@ const sendMessage = async (req, res) => {
                 page.click('input[name="send"]'),
               ]);
             } catch (error) {
-              console.log(error.message);
+               // console.log(error.message);
               await Promise.all([
                 page.waitForNavigation(),
                 page.click('input[name="Send"]'),
               ]);
             }
 
-            console.log({
+             // console.log({
               sent: user,
               message: "success",
               time: new Date().toISOString(),
@@ -146,7 +146,7 @@ const sendMessage = async (req, res) => {
 
             sentMessage(user, message, "success", fbUsername, username);
           } catch (error) {
-            console.log(error.message);
+             // console.log(error.message);
             sentMessage(user, message, "failed", fbUsername, username);
             continue;
           }
@@ -154,7 +154,7 @@ const sendMessage = async (req, res) => {
 
         // If not all users have been processed, wait for 30 seconds before proceeding
         if (i + count < users.length) {
-          console.log(
+           // console.log(
             `Scheduled next ${count} after ${interval / 1000} seconds`
           );
           await new Promise((resolve) => setTimeout(resolve, interval));
@@ -163,12 +163,12 @@ const sendMessage = async (req, res) => {
 
       res.status(200).send({ message: "Message sent successfully" });
     } catch (error) {
-      console.log(error);
+       // console.log(error);
       res
         .status(500)
         .send({ message: "Failed to send message", error: error.message });
     } finally {
-      console.log("Request Completed");
+       // console.log("Request Completed");
       if (browser) {
         await browser.close();
       }
@@ -183,7 +183,7 @@ const getAllMessages = async (req, res) => {
     const messages = await pool.query(queries.getAllMessages);
     res.status(200).json({ success: true, data: messages.rows });
   } catch (error) {
-    console.error("Error fetching messages:", error);
+     // console.error("Error fetching messages:", error);
     res
       .status(500)
       .json({ success: false, message: "Error fetching messages" });
@@ -198,7 +198,7 @@ const getAllMessagesByUsername = async (req, res) => {
     ]);
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    console.error("Error fetching messages:", error);
+     // console.error("Error fetching messages:", error);
     res
       .status(500)
       .json({ success: false, message: "Error fetching messages" });

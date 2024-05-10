@@ -34,7 +34,7 @@ const updateTaskStatus = async (id, status, user) => {
     [status, id, user]
   );
 
-  console.log("TASK TO BE UPDAE  : ", updatedTask.rows);
+  // console.log("TASK TO BE UPDAE  : ", updatedTask.rows);
 };
 
 function generateUniqueId() {

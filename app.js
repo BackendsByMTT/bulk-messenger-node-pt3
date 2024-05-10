@@ -25,6 +25,7 @@ const wss = new WebSocket.Server({ server }); // Create a WebSocket server
 const PORT = process.env.PORT || 3001;
 const taskSchedulerIntervalIds = new Map();
 const clients = new Map();
+
 app.use(cors());
 app.use(express.json());
 app.use("/api/", messengerRoute);
@@ -33,9 +34,8 @@ app.use("/extension", extensionRoute);
 wss.on("connection", async (ws) => {
   let clientId = null;
   let token = null;
-  // console.log(`Connected: ${clientId}`);
+  //  // console.log(`Connected: ${clientId}`);
   // clients.set(clientId, ws);
-
   const isMessageTable = await checkTableExists("messages");
 
   if (!isMessageTable) {
@@ -47,19 +47,19 @@ wss.on("connection", async (ws) => {
       const data = JSON.parse(message.data);
 
       if (data.action === "keepalive") {
-        console.log(`WEBSOCKET IS ALIVE FOR :${clientId}`);
+        // console.log(`WEBSOCKET IS ALIVE FOR :${clientId}`);
       }
 
       if (data.action === "clientID") {
         clientId = data.payload;
         token = data.token;
 
-        console.log(`Client ID received: ${clientId}`);
-        console.log(`Client Token: ${token}`);
+        // console.log(`Client ID received: ${clientId}`);
+        // console.log(`Client Token: ${token}`);
 
         // Update the WebSocket connection for this clientId in the clients map
         clients.set(clientId, ws);
-        console.log(`WebSocket connection updated for client ID: ${clientId}`);
+        // console.log(`WebSocket connection updated for client ID: ${clientId}`);
 
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
         const agent = decodedToken.username;
@@ -74,33 +74,33 @@ wss.on("connection", async (ws) => {
       }
 
       if (data.action === "checkPendingTask") {
-        console.log("Checking pending task");
+        // console.log("Checking pending task");
       }
     } catch (error) {
-      console.error("Error processing message:", error);
+      // console.error("Error processing message:", error);
     }
   };
 
   ws.on("close", () => {
-    console.log(`Disconnedted :  ${clientId}`);
+    // console.log(`Disconnedted :  ${clientId}`);
     // clients.delete(clientId);
-    // console.log("Cancelled Scheduled Tasks");
+    //  // console.log("Cancelled Scheduled Tasks");
     // clearTaskSchedulerInterval(clientId);
   });
 });
 
 const processAddTasks = async (clientId, payload) => {
   const { message, ids: users, time: interval, count, token } = payload;
-  console.log(payload);
+  // console.log(payload);
   const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
   const role = decodedToken.role;
   const username = decodedToken.username;
 
-  console.log("role : ", role, username);
+  // console.log("role : ", role, username);
 
   const ws = clients.get(clientId);
   if (!ws) {
-    console.error(`WebSocket connection not found for client ${clientId}`);
+    // console.error(`WebSocket connection not found for client ${clientId}`);
     return;
   }
 
@@ -113,11 +113,11 @@ const processAddTasks = async (clientId, payload) => {
 
 const scheduleTasks = (clientId, ws, interval = 2, count = 2, username) => {
   if (taskSchedulerIntervalIds.has(clientId)) {
-    console.log("Task already scheduled for this client");
+    // console.log("Task already scheduled for this client");
     return;
   }
 
-  console.log("Tasks Scheduled sucessfully");
+  // console.log("Tasks Scheduled sucessfully");
   executeTasks(clientId, count, username);
 
   const intervalId = setInterval(async () => {
@@ -138,7 +138,7 @@ const clearTaskSchedulerInterval = (clientId) => {
 
 const executeTasks = async (clientId, count, username) => {
   const tasks = await getPendingTask(count, username);
-  console.log("TASK : ", tasks);
+  // console.log("TASK : ", tasks);
 
   if (tasks.length > 0) {
     tasks.forEach((task) => {
@@ -154,15 +154,15 @@ const executeTasks = async (clientId, count, username) => {
     });
   } else {
     clearTaskSchedulerInterval(clientId);
-    console.log("No pending tasks : ", username);
+    // console.log("No pending tasks : ", username);
   }
 };
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${server.address().port}`);
+  // console.log(`Server running on port ${server.address().port}`);
 });
 
 // Log WebSocket server's port after it starts listening
 wss.on("listening", () => {
-  console.log(`WebSocket server running on port ${server.address().port}`);
+  // console.log(`WebSocket server running on port ${server.address().port}`);
 });

@@ -13,7 +13,7 @@ const addBatch = async (req, res, next) => {
         try {
           sentMessage(user, message, "success", fbUsername, username);
         } catch (error) {
-          console.log(error.message);
+          // console.log(error.message);
           sentMessage(user, message, "failed", fbUsername, username);
           continue;
         }
@@ -21,7 +21,7 @@ const addBatch = async (req, res, next) => {
 
       // If not all users have been processed, wait for 30 seconds before proceeding
       if (i + count < users.length) {
-        console.log(`Scheduled next ${count} after ${interval / 1000} seconds`);
+        // console.log(`Scheduled next ${count} after ${interval / 1000} seconds`);
         await new Promise((resolve) => setTimeout(resolve, interval));
       }
     }
