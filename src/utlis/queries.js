@@ -52,6 +52,8 @@ const getAgentByUsername =
 
 const getAllMessagesByUsername = "SELECT * FROM messages WHERE agent = $1";
 
+const deleteMessages = "DELETE FROM messages WHERE id = ANY($1)";
+
 module.exports = {
   addMessage,
   createMessageTable,
@@ -72,4 +74,5 @@ module.exports = {
   getAllAgents,
   getAgentByUsername,
   getAllMessagesByUsername,
+  deleteMessages,
 };
