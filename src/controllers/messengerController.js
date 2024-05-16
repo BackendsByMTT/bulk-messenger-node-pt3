@@ -216,9 +216,23 @@ const updateMessageById = async (req, res) => {
   }
 };
 
+const deleteMessages = async (req, res) => {
+  try {
+    const { messageIds } = req.body;
+    console.log("MessageIDS : ", messageIds);
+    await pool.query(queries.deleteMessages, [messageIds]);
+
+    res.status(200).json({ message: `Deleted ${messageIds.length} messages.` });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   sendMessage,
   getAllMessages,
   getAllMessagesByUsername,
   updateMessageById,
+  deleteMessages,
 };

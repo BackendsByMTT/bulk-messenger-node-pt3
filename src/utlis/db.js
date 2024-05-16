@@ -12,10 +12,8 @@ const pool = new Pool({
   host: process.env.DB_HOST,
 });
 
-
-
 pool.on("connect", () => {
-  console.log("Database connected");
+  // console.log("Database connected");
 });
 
 module.exports = { pool };

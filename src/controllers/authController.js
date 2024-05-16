@@ -91,7 +91,7 @@ const registerUser = async (req, res) => {
       message: `${role} registered successfully`,
     });
   } catch (error) {
-    console.log("Error registering user : ", error.message);
+    // console.log("Error registering user : ", error.message);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
@@ -101,7 +101,7 @@ const registerUser = async (req, res) => {
 // Login
 const loginUser = async (req, res) => {
   const { username, password } = req.body;
-  console.log("Login : ", username, password);
+  // console.log("Login : ", username, password);
   // Check if both username and password are provided
   if (!username || !password) {
     return res.status(400).json({
@@ -144,7 +144,7 @@ const loginUser = async (req, res) => {
       role: user.role,
     });
   } catch (error) {
-    console.error("Error during login:", error.message);
+    // console.error("Error during login:", error.message);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
@@ -155,7 +155,7 @@ const getAllAgents = async (req, res) => {
     const { rows } = await pool.query(queries.getAllAgents);
     return res.status(200).json({ success: true, agents: rows });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return res
       .status(400)
       .json({ success: false, message: "Failed to get agents" });
@@ -235,7 +235,7 @@ const updateAgent = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Agent updated successfully" });
   } catch (error) {
-    console.error("Error updating user:", error);
+    // console.error("Error updating user:", error);
     return res
       .status(500)
       .json({ success: false, message: "Unable to update agent" });
@@ -249,7 +249,7 @@ const getAgentByUsername = async (req, res) => {
     const { rows } = await pool.query(queries.getAgentByUsername, [username]);
     return res.status(200).json({ success: true, agents: rows });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return res
       .status(400)
       .json({ success: false, message: "Failed to get agent" });
@@ -275,7 +275,7 @@ const getUserByUsername = async (req, res) => {
     const { rows } = await pool.query(queries.getUserByUsername, [username]);
     return res.status(200).json({ success: true, users: rows });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return res
       .status(400)
       .json({ success: false, message: "Failed to get user" });

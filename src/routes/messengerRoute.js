@@ -4,6 +4,7 @@ const {
   getAllMessages,
   getAllMessagesByUsername,
   updateMessageById,
+  deleteMessages,
 } = require("../controllers/messengerController");
 const {
   registerUser,
@@ -61,5 +62,8 @@ router.get("/messages/:agent", authenticate, getAllMessagesByUsername);
 
 // Update Message
 router.put("/messages/:messageId", updateMessageById);
+
+// Delete Message
+router.delete("/messages", deleteMessages);
 
 module.exports = router;
